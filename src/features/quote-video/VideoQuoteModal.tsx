@@ -5,12 +5,14 @@ import { QUOTE_URL, VIDEO_SRC } from "../../config";
 type VideoQuoteModalProps = {
   isOpen: boolean;
   onClose: () => void;
+  startMuted?: boolean;
   videoRef: RefObject<HTMLVideoElement | null>;
 };
 
 export function VideoQuoteModal({
   isOpen,
   onClose,
+  startMuted = false,
   videoRef,
 }: VideoQuoteModalProps) {
   const [needsManualPlay, setNeedsManualPlay] = useState(false);
@@ -38,7 +40,7 @@ export function VideoQuoteModal({
     setNeedsManualPlay(false);
     video.pause();
     video.currentTime = 0;
-    video.muted = false;
+    video.muted = startMuted;
     video.volume = 1;
     video.load();
 
@@ -47,7 +49,7 @@ export function VideoQuoteModal({
     } catch {
       setNeedsManualPlay(true);
     }
-  }, [videoRef]);
+  }, [startMuted, videoRef]);
 
   return (
     <div

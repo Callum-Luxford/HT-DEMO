@@ -16,6 +16,7 @@ export function VideoQuoteModal({
   videoRef,
 }: VideoQuoteModalProps) {
   const [needsManualPlay, setNeedsManualPlay] = useState(false);
+  const [showSoundButton, setShowSoundButton] = useState(false);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -32,6 +33,10 @@ export function VideoQuoteModal({
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [isOpen, onClose]);
+
+  useEffect(() => {
+    setShowSoundButton(isOpen && startMuted);
+  }, [isOpen, startMuted]);
 
   const startVideo = useCallback(async () => {
     const video = videoRef.current;
@@ -50,6 +55,16 @@ export function VideoQuoteModal({
       setNeedsManualPlay(true);
     }
   }, [startMuted, videoRef]);
+
+  const enableSound = useCallback(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    video.muted = false;
+    video.volume = 1;
+    void video.play();
+    setShowSoundButton(false);
+  }, [videoRef]);
 
   return (
     <div
@@ -83,6 +98,11 @@ export function VideoQuoteModal({
         {needsManualPlay && (
           <button className="manual-play" onClick={startVideo}>
             Play video <ArrowRight size={34} aria-hidden="true" />
+          </button>
+        )}
+        {showSoundButton && !needsManualPlay && (
+          <button className="manual-play sound-toggle" onClick={enableSound}>
+            Tap for sound <ArrowRight size={34} aria-hidden="true" />
           </button>
         )}
         <div className="modal-actions">

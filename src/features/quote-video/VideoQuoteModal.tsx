@@ -1,22 +1,21 @@
 import { useCallback, useEffect, useState, type RefObject } from "react";
-import { ArrowRight, X } from "lucide-react";
+import { ArrowRight, Play, X } from "lucide-react";
 import { QUOTE_URL, VIDEO_SRC } from "../../config";
 
 type VideoQuoteModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  startMuted?: boolean;
+  requiresManualStart?: boolean;
   videoRef: RefObject<HTMLVideoElement | null>;
 };
 
 export function VideoQuoteModal({
   isOpen,
   onClose,
-  startMuted = false,
+  requiresManualStart = false,
   videoRef,
 }: VideoQuoteModalProps) {
   const [needsManualPlay, setNeedsManualPlay] = useState(false);
-  const [showSoundButton, setShowSoundButton] = useState(false);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -35,8 +34,18 @@ export function VideoQuoteModal({
   }, [isOpen, onClose]);
 
   useEffect(() => {
-    setShowSoundButton(isOpen && startMuted);
-  }, [isOpen, startMuted]);
+    if (!isOpen || !requiresManualStart) return;
+
+    const video = videoRef.current;
+    if (!video) return;
+
+    setNeedsManualPlay(true);
+    video.pause();
+    video.currentTime = 0;
+    video.muted = false;
+    video.volume = 1;
+    video.load();
+  }, [isOpen, requiresManualStart, videoRef]);
 
   const startVideo = useCallback(async () => {
     const video = videoRef.current;
@@ -45,7 +54,7 @@ export function VideoQuoteModal({
     setNeedsManualPlay(false);
     video.pause();
     video.currentTime = 0;
-    video.muted = startMuted;
+    video.muted = false;
     video.volume = 1;
     video.load();
 
@@ -54,16 +63,6 @@ export function VideoQuoteModal({
     } catch {
       setNeedsManualPlay(true);
     }
-  }, [startMuted, videoRef]);
-
-  const enableSound = useCallback(() => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    video.muted = false;
-    video.volume = 1;
-    void video.play();
-    setShowSoundButton(false);
   }, [videoRef]);
 
   return (
@@ -91,18 +90,19 @@ export function VideoQuoteModal({
           playsInline
           preload="auto"
           onCanPlay={() => {
-            if (isOpen && videoRef.current?.paused) void startVideo();
+            if (isOpen && !requiresManualStart && videoRef.current?.paused) {
+              void startVideo();
+            }
           }}
           onPlaying={() => setNeedsManualPlay(false)}
         />
         {needsManualPlay && (
-          <button className="manual-play" onClick={startVideo}>
-            Play video <ArrowRight size={34} aria-hidden="true" />
-          </button>
-        )}
-        {showSoundButton && !needsManualPlay && (
-          <button className="manual-play sound-toggle" onClick={enableSound}>
-            Tap for sound <ArrowRight size={34} aria-hidden="true" />
+          <button
+            className="manual-play"
+            onClick={startVideo}
+            aria-label="Play video"
+          >
+            <Play size={42} fill="currentColor" aria-hidden="true" />
           </button>
         )}
         <div className="modal-actions">

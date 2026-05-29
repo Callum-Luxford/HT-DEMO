@@ -9,7 +9,7 @@ import { VideoQuoteModal } from "./features/quote-video/VideoQuoteModal";
 
 export function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [startMuted, setStartMuted] = useState(false);
+  const [requiresManualStart, setRequiresManualStart] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const playVideo = useCallback((muted: boolean) => {
@@ -26,7 +26,7 @@ export function App() {
   }, []);
 
   const handleQuoteClick = useCallback(() => {
-    setStartMuted(false);
+    setRequiresManualStart(false);
 
     flushSync(() => {
       setIsModalOpen(true);
@@ -42,9 +42,8 @@ export function App() {
 
     if (!shouldOpenVideo) return;
 
-    setStartMuted(true);
+    setRequiresManualStart(true);
     setIsModalOpen(true);
-    window.requestAnimationFrame(() => playVideo(true));
   }, [playVideo]);
 
   const handleModalClose = useCallback(() => {
@@ -70,7 +69,7 @@ export function App() {
       <VideoQuoteModal
         isOpen={isModalOpen}
         onClose={handleModalClose}
-        startMuted={startMuted}
+        requiresManualStart={requiresManualStart}
         videoRef={videoRef}
       />
     </>
